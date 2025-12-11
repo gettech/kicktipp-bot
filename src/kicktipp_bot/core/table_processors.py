@@ -151,6 +151,10 @@ class TableRowProcessor:
 
 class GameDataExtractor:
     """Handles extraction of game-specific data from table rows."""
+    
+    # XPath selectors for quote extraction
+    XPATH_QUOTE_ANCHOR = './/a[contains(@class, "quote")]'
+    XPATH_QUOTE_SPAN = ".//span[contains(@class, 'quote')][span[contains(@class,'quote-label')] and span[contains(@class,'quote-text')]]"
 
     @staticmethod
     def extract_team_name(data_row, column_index: int, team_type: str) -> Optional[str]:
@@ -216,7 +220,7 @@ class GameDataExtractor:
                 quote_elements = SeleniumUtils.safe_find_elements(
                     container,
                     By.XPATH,
-                    './/a[contains(@class, "quote")]'
+                    GameDataExtractor.XPATH_QUOTE_ANCHOR
                 )
                 
                 # Fallback: Look for span elements (ad-free accounts)
@@ -225,7 +229,7 @@ class GameDataExtractor:
                     quote_elements = SeleniumUtils.safe_find_elements(
                         container,
                         By.XPATH,
-                        ".//span[contains(@class, 'quote')][span[contains(@class,'quote-label')] and span[contains(@class,'quote-text')]]"
+                        GameDataExtractor.XPATH_QUOTE_SPAN
                     )
                 
                 logger.debug(f"Found {len(quote_elements)} quote elements in container")
