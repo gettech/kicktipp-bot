@@ -6,6 +6,7 @@ from typing import List, Tuple, Optional
 import logging
 
 from ..config import Config
+from ..models.notification import NotificationEvent
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class NotificationManager:
         ])
         self.webhook_enabled = Config.WEBHOOK_URL is not None
         self.group_notifications = Config.GROUP_NOTIFICATIONS
-        self.pending_events = []
+        self.pending_events: List[NotificationEvent] = []
 
     def send_all_notifications(
         self,
@@ -172,25 +173,15 @@ class NotificationManager:
         tip: Tuple[int, int]
     ) -> None:
         """Collect an event for grouped notification."""
-        event = {
-            "home_team": home_team,
-            "away_team": away_team,
-            "quotes": quotes,
-            "tip": list(tip),
-            "time": game_time.strftime('%d.%m.%y %H:%M'),
-            "timestamp": game_time.isoformat(),
-            # Zapier-compatible fields
-            "date": game_time.isoformat(),
-            "team1": home_team,
-            "team2": away_team,
-            "quoteteam1": quotes[0] if len(quotes) > 0 else '',
-            "quotedraw": quotes[1] if len(quotes) > 1 else '',
-            "quoteteam2": quotes[2] if len(quotes) > 2 else '',
-            "tipteam1": tip[0],
-            "tipteam2": tip[1]
-        }
+        event = NotificationEvent(
+            home_team=home_team,
+            away_team=away_team,
+            quotes=quotes,
+            tip=tip,
+            game_time=game_time
+        )
         self.pending_events.append(event)
-        logger.debug(f"Collected event for grouped notification: {home_team} vs {away_team}")
+        logger.debug(f"Collected event for grouped notification: {event}")
 
     def send_grouped_notifications(self) -> None:
         """Send all collected events as grouped notifications."""
@@ -220,7 +211,7 @@ class NotificationManager:
         """Send grouped notification to Zapier webhook."""
         try:
             payload = {
-                'events': self.pending_events
+                'events': [event.to_dict() for event in self.pending_events]
             }
 
             response = requests.post(
@@ -243,14 +234,7 @@ class NotificationManager:
             title = f"{len(self.pending_events)} games tipped"
             message_parts = []
             for event in self.pending_events:
-                # Safely extract event data with defaults
-                home = event.get('home_team', 'Unknown')
-                away = event.get('away_team', 'Unknown')
-                tip = event.get('tip', [0, 0])
-                time = event.get('time', 'Unknown')
-                message_parts.append(
-                    f"{home} - {away}: {tip[0]}:{tip[1]} ({time})"
-                )
+                message_parts.append(str(event))
             message = "\n".join(message_parts)
 
             headers = {
@@ -277,7 +261,7 @@ class NotificationManager:
         """Send grouped notification to generic webhook."""
         try:
             data = {
-                "events": self.pending_events
+                "events": [event.to_dict() for event in self.pending_events]
             }
 
             headers = {
