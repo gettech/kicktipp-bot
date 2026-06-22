@@ -1,12 +1,10 @@
 name: Publish Docker Image to GHCR
 
-# Der Workflow startet automatisch bei jedem Push in den 'main'-Branch
 on:
   push:
     branches:
       - main
 
-# Globale Variablen für die Container Registry
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: gettech2/kicktipp-bot
@@ -28,7 +26,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} 
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -43,6 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./docker/Dockerfile 
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
