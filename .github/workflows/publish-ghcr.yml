@@ -9,7 +9,7 @@ on:
 # Globale Variablen für die Container Registry
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: gettech/kicktipp-bot
+  IMAGE_NAME: gettech2/kicktipp-bot
 
 jobs:
   build-and-push-image:
