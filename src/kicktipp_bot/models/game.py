@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Tuple, Union
-
+from config import Config
 
 @dataclass
 class Game:
@@ -62,6 +62,15 @@ class Game:
         # Calculate quote difference (negative = home team more likely to win)
         quote_difference = home_quote - away_quote
 
+        # DISCOURAGE_MODE LOGIK
+        if Config.DISCOURAGE_MODE:
+            if abs(quote_difference) < 0.25:
+                return 1, 1
+            elif quote_difference < 0:
+                return 2, 1
+            else:
+                return 1, 2
+                
         # Add randomness for more realistic scores
         random_goal = random.randint(0, 1)
 
@@ -85,7 +94,6 @@ class Game:
             away_goals = max(
                 0, round(quote_difference * coefficient)) + random_goal
             return home_goals, away_goals
-
     def __str__(self) -> str:
         """String representation of the game."""
         return f"{self.home_team} vs {self.away_team} at {self.game_time.strftime('%d.%m.%y %H:%M')}"
