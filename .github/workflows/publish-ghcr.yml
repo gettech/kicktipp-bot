@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: gettech2/kicktipp-bot
+  IMAGE_NAME: gettech/kicktipp-bot
 
 jobs:
   build-and-push-image:
