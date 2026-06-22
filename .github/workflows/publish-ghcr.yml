@@ -15,7 +15,6 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     
-    # Wichtig: Gibt dem temporären Token die Rechte, Packages hochzuladen
     permissions:
       contents: read
       packages: write
@@ -29,7 +28,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Wird von GitHub automatisch befüllt
+          password: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
