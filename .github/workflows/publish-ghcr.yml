@@ -9,7 +9,6 @@ on:
 # Globale Variablen für die Container Registry
 env:
   REGISTRY: ghcr.io
-  # Hier steht jetzt zwingend dein GitHub-Name, komplett kleingeschrieben:
   IMAGE_NAME: gettech/kicktipp-bot
 
 jobs:
