@@ -1,19 +1,22 @@
 name: Publish Docker Image to GHCR
 
+# Der Workflow startet automatisch bei jedem Push in den 'main'-Branch
 on:
   push:
     branches:
-      - main  # Läuft automatisch los, wenn du Code in den main-Branch pushst
+      - main
 
+# Globale Variablen für die Container Registry
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Hier steht jetzt zwingend dein GitHub-Name, komplett kleingeschrieben:
+  IMAGE_NAME: gettech/kicktipp-bot
 
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     
-    # Berechtigungen für das automatische GITHUB_TOKEN
+    # Wichtig: Gibt dem temporären Token die Rechte, Packages hochzuladen
     permissions:
       contents: read
       packages: write
