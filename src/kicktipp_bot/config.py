@@ -22,6 +22,9 @@ class Config:
     RUN_EVERY_X_MINUTES: Optional[int] = int(
         os.getenv("KICKTIPP_RUN_EVERY_X_MINUTES", "60"))
     OVERWRITE_TIPS: Optional[bool] = os.getenv("OVERWRITE_TIPS", "false").lower() == "true"
+    
+    # Tipping Strategy Configuration
+    DISCOURAGE_MODE: bool = os.getenv("DISCOURAGE_MODE", "false").lower() == "true"
 
     # Chrome driver path
     CHROMEDRIVER_PATH: Optional[str] = os.getenv("CHROMEDRIVER_PATH")
