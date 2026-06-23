@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Tuple, Union
-from config import Config
+from ..config import Config
 
 @dataclass
 class Game:
