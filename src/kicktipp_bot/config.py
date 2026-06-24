@@ -25,6 +25,10 @@ class Config:
     
     # Tipping Strategy Configuration
     DISCOURAGE_MODE: bool = os.getenv("DISCOURAGE_MODE", "false").lower() == "true"
+    
+    # --- Gemini Configuration ---
+    USE_GEMINI: bool = os.getenv("USE_GEMINI", "false").lower() == "true"
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
 
     # Chrome driver path
     CHROMEDRIVER_PATH: Optional[str] = os.getenv("CHROMEDRIVER_PATH")
