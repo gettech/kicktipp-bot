@@ -86,10 +86,10 @@ class Game:
                 )
                 
                 response = gemini_client.models.generate_content(
-                    model='gemini-1.5-flash',
+                    model='gemini-2.0-flash',
                     contents=prompt,
                     config=types.GenerateContentConfig(
-                        tools=[{"google_search": {}}]
+                        tools=[types.Tool(google_search=types.GoogleSearch())]
                     )
                 )
                 
