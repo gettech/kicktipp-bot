@@ -1,13 +1,16 @@
 """Game model for representing football matches and calculating betting tips."""
 import random
 import re
-from typing import Tuple, Union
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import List, Tuple, Union
 import google.generativeai as genai
 from ..config import Config
 
 # API einmalig konfigurieren, falls ein Key hinterlegt ist
 if Config.GEMINI_API_KEY:
     genai.configure(api_key=Config.GEMINI_API_KEY)
+
 
 @dataclass
 class Game:
@@ -46,7 +49,7 @@ class Game:
         except (ValueError, TypeError) as e:
             raise ValueError(f"Invalid quote values: {quotes}") from e
 
-   def calculate_tip(self, home_quote: Union[float, None] = None, away_quote: Union[float, None] = None) -> Tuple[int, int]:
+    def calculate_tip(self, home_quote: Union[float, None] = None, away_quote: Union[float, None] = None) -> Tuple[int, int]:
         """
         Calculate betting tip using Gemini API (if enabled), 
         falling back to logic/quotes.
@@ -58,19 +61,30 @@ class Game:
 
         quote_difference = home_quote - away_quote
 
-        # --- GEMINI MODE  ---
+        # --- GEMINI MODE MIT WEBSUCHE ---
         if Config.USE_GEMINI and Config.GEMINI_API_KEY:
             try:
                 # Passe self.home_team / self.away_team ggf. an deine echten Variablen an!
                 home_name = getattr(self, "home_team", "Heimteam")
                 away_name = getattr(self, "away_team", "Auswärtsteam")
                 
-                # Wir nutzen gemini-1.5-flash, da es extrem schnell und perfekt für Text ist
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                # Wir nutzen gemini-1.5-flash und aktivieren explizit die Google-Suche
+                model = genai.GenerativeModel(
+                    model_name='gemini-1.5-flash',
+                    tools='google_search_retrieval'
+                )
+                
                 prompt = (
-                    f"Du bist ein Fußballexperte. Tippe das genaue Endergebnis für das Spiel "
-                    f"{home_name} gegen {away_name}. Die Quoten sind Heim: {home_quote}, Auswärts: {away_quote}. "
-                    f"Antworte AUSSCHLIESSLICH mit dem Ergebnis im Format X:Y (z.B. 2:1). Keine Erklärungen."
+                    f"Du bist ein professioneller Fußball-Analyst. "
+                    f"Recherchiere jetzt sofort mit der Google Suche die aktuelle Form, "
+                    f"letzte News, Verletzungen, Sperren und Head-to-Head-Statistiken "
+                    f"für das bevorstehende Spiel: {home_name} gegen {away_name}. "
+                    f"Die aktuellen Wettquoten sind Heim: {home_quote}, Auswärts: {away_quote}. "
+                    f"Nutze diese Quoten nur als groben Indikator, verlasse dich aber für deinen Tipp "
+                    f"auf deine aktuelle Recherche der echten Umstände. "
+                    f"Tippe basierend auf diesen Fakten das wahrscheinlichste genaue Endergebnis. "
+                    f"WICHTIG: Deine finale Antwort darf AUSSCHLIESSLICH das Ergebnis im Format X:Y enthalten (z.B. 2:1). "
+                    f"Schreibe absolut keinen anderen Text, keine Begründung und keine Quelle dazu."
                 )
                 
                 response = model.generate_content(prompt)
@@ -84,7 +98,7 @@ class Game:
             except Exception as e:
                 print(f"Gemini API Fehler: {e}. Nutze Fallback-Logik.")
 
-        # ---  DISCOURAGE_MODE ---
+        # --- DISCOURAGE_MODE ---
         if Config.DISCOURAGE_MODE:
             if abs(quote_difference) < 0.25:
                 return 1, 1
