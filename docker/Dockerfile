@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 # install chromedriver
 RUN apk update && apk add chromium chromium-chromedriver curl && \
