@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Tuple, Union
 
-# --- NEU: Das neue offizielle Google GenAI SDK ---
+# Das neue offizielle Google GenAI SDK
 from google import genai
 from google.genai import types
 
@@ -85,7 +85,6 @@ class Game:
                     f"Schreibe absolut keinen anderen Text, keine Begründung und keine Quelle dazu."
                 )
                 
-                # Aufruf der API mit aktiviertem Google-Search Tool
                 response = gemini_client.models.generate_content(
                     model='gemini-1.5-flash',
                     contents=prompt,
@@ -96,14 +95,16 @@ class Game:
                 
                 match = re.search(r'(\d+)\s*:\s*(\d+)', response.text)
                 if match:
+                    print(f"Tipp-Modus für [{self.home_team} vs {self.away_team}]: GEMINI (Websuche)")
                     return int(match.group(1)), int(match.group(2))
                 else:
                     print(f"Konnte Gemini-Antwort nicht parsen: {response.text}")
             except Exception as e:
-                print(f"Gemini API Fehler: {e}. Nutze Fallback-Logik.")
+                print(f"Gemini API Fehler: {e}. Wechsle zu Fallback-Logik.")
 
         # --- DISCOURAGE_MODE ---
         if Config.DISCOURAGE_MODE:
+            print(f"Tipp-Modus für [{self.home_team} vs {self.away_team}]: DISCOURAGE (Sicherer Tipp)")
             if abs(quote_difference) < 0.25:
                 return 1, 1
             elif quote_difference < 0:
@@ -112,6 +113,7 @@ class Game:
                 return 1, 2
 
         # --- ORIGINAL LOGIK ---
+        print(f"Tipp-Modus für [{self.home_team} vs {self.away_team}]: ORIGINAL (Quoten-Mathematik)")
         random_goal = random.randint(0, 1)
         coefficient = 0.3 if abs(quote_difference) > 7 else 0.75
 
