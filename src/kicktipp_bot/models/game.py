@@ -4,12 +4,17 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Tuple, Union
-import google.generativeai as genai
+
+# --- NEU: Das neue offizielle Google GenAI SDK ---
+from google import genai
+from google.genai import types
+
 from ..config import Config
 
-# API einmalig konfigurieren, falls ein Key hinterlegt ist
+# API-Client einmalig vorbereiten, falls ein Key hinterlegt ist
+gemini_client = None
 if Config.GEMINI_API_KEY:
-    genai.configure(api_key=Config.GEMINI_API_KEY)
+    gemini_client = genai.Client(api_key=Config.GEMINI_API_KEY)
 
 
 @dataclass
@@ -62,17 +67,10 @@ class Game:
         quote_difference = home_quote - away_quote
 
         # --- GEMINI MODE MIT WEBSUCHE ---
-        if Config.USE_GEMINI and Config.GEMINI_API_KEY:
+        if Config.USE_GEMINI and gemini_client:
             try:
-                # Passe self.home_team / self.away_team ggf. an deine echten Variablen an!
                 home_name = getattr(self, "home_team", "Heimteam")
                 away_name = getattr(self, "away_team", "Auswärtsteam")
-                
-                # Wir nutzen gemini-1.5-flash und aktivieren explizit die Google-Suche
-                model = genai.GenerativeModel(
-                    model_name='gemini-1.5-flash',
-                    tools='google_search_retrieval'
-                )
                 
                 prompt = (
                     f"Du bist ein professioneller Fußball-Analyst. "
@@ -87,9 +85,15 @@ class Game:
                     f"Schreibe absolut keinen anderen Text, keine Begründung und keine Quelle dazu."
                 )
                 
-                response = model.generate_content(prompt)
+                # Aufruf der API mit aktiviertem Google-Search Tool
+                response = gemini_client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        tools=[{"google_search": {}}]
+                    )
+                )
                 
-                # Sichere Extraktion des Ergebnisses via Regex (sucht nach Zahl:Zahl)
                 match = re.search(r'(\d+)\s*:\s*(\d+)', response.text)
                 if match:
                     return int(match.group(1)), int(match.group(2))
