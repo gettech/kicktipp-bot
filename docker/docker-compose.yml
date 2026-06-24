@@ -3,7 +3,7 @@ version: '3.7'
 services:
   kicktipp-bot:
     container_name: kicktipp-bot
-    image: ghcr.io/antonengelhardt/kicktipp-bot:amd64
+    image: ghcr.io/gettech2/kicktipp-bot:amd64
     platform: linux/amd64
     tty: true
     restart: unless-stopped
